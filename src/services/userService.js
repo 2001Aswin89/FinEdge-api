@@ -9,6 +9,9 @@ const generateId = () => {
 // Generates JWT token for user session (mock auth for now)
 // NOTE: Will be used by future auth middleware (Member 3)
 const generateToken = (user) => {
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not defined');
+    }
     return jwt.sign(
         { id: user.id, email: user.email },
         process.env.JWT_SECRET,
@@ -19,7 +22,10 @@ const generateToken = (user) => {
 const createUser = async ({ name, email }) => {
     const users = await userModel.getAllUsers();
 
-    const existingUser = users.find(u => u.email === email);
+    // Normalize email to avoid duplicate accounts with different casing
+    const normalizedEmail = email.toLowerCase();
+
+    const existingUser = users.find(u => u.email === normalizedEmail);
     if (existingUser) {
         const error = new Error('User already exists');
         error.statusCode = 400;
@@ -29,7 +35,7 @@ const createUser = async ({ name, email }) => {
     const newUser = {
         id: generateId(),
         name,
-        email,
+        email: normalizedEmail,
         createdAt: new Date().toISOString()
     };
 

@@ -4,7 +4,8 @@ const registerUser = async (req, res, next) => {
     try {
         const { name, email } = req.body;
 
-        if (!name || !email) {
+        // Basic validation (trim to avoid empty string inputs)
+        if (!name?.trim() || !email?.trim()) {
             return res.status(400).json({
                 message: 'Name and email are required'
             });
