@@ -10,11 +10,11 @@ const registerUser = async (req, res, next) => {
             });
         }
 
-        const newUser = await userService.createUser({ name, email });
+        const result = await userService.createUser({ name, email });
 
         res.status(201).json({
             message: 'User created successfully',
-            data: newUser
+            ...result
         });
     } catch (error) {
 
