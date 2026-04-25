@@ -17,7 +17,15 @@ const registerUser = async (req, res, next) => {
             data: newUser
         });
     } catch (error) {
-        next(error); // pass to global error handler (Member 3 to handle later)
+
+        // NOTE: This duplicate email check will later be handled
+        // via centralized validation middleware (M3)        
+        res.status(error.statusCode || 500).json({
+            message: error.message || 'Internal Server Error'
+        });
+
+        // next(error);  pass to global error handler (Member 3 to handle later)
+
     }
 };
 
