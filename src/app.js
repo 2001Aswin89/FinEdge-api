@@ -39,7 +39,13 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Start the server only when this file is invoked directly (e.g. `node src/app.js`).
+// When imported by tests via supertest, the app object is exported instead so the
+// test runner does not bind to a real port.
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
