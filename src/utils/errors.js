@@ -21,8 +21,15 @@ class ValidationError extends AppError {
     }
 }
 
+class ConflictError extends AppError {
+    constructor(message = 'Resource already exists') {
+        super(message, 409);
+    }
+}
+
 module.exports = {
     AppError,
     NotFoundError,
     ValidationError,
+    ConflictError,
 };
