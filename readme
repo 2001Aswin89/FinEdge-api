@@ -195,3 +195,53 @@ Responses follow this structure:
 * Ready for further development and integration
 
 ---
+
+# 🌿 Branch History
+
+> Note: This is a working log of changes made on the `feature/rest-api-development` branch.
+> The README will be fully reformatted as part of Member 4's documentation tasks.
+
+## feature/rest-api-development (Member 2)
+
+### Transaction Module
+
+Endpoints:
+
+* `POST /transactions` (create income/expense entry)
+* `GET /transactions` (list with optional filters: type, category, startDate, endDate, userId)
+* `GET /transactions/:id` (fetch single transaction)
+* `PATCH /transactions/:id` (partial update; system fields protected)
+* `DELETE /transactions/:id` (remove transaction)
+
+Data file: `src/data/transactions.json`
+
+### Budget Module
+
+Endpoints:
+
+* `POST /budgets` (create budget for a userId + month pair; uniqueness enforced)
+* `GET /budgets` (list with optional filters: userId, month)
+* `GET /budgets/:id` (fetch single budget)
+* `PATCH /budgets/:id` (partial update)
+* `DELETE /budgets/:id` (remove budget)
+
+Data file: `src/data/budgets.json`
+
+### Custom Error Classes (`src/utils/errors.js`)
+
+* `AppError` (base class with HTTP statusCode)
+* `NotFoundError` (404 for missing resources)
+* `ValidationError` (400 with field-level details)
+* `ConflictError` (409 for uniqueness violations)
+
+### Configuration
+
+* `.env.example` added with required environment variables (`PORT`, `JWT_SECRET`, `TRANSACTIONS_FILE`, `BUDGETS_FILE`)
+
+### Pending Work (handled in `feature/middleware`)
+
+* Validation middleware on body and query parameters
+* Global error-handling middleware
+* Request-logging middleware
+
+---
