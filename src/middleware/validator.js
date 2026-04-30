@@ -24,6 +24,15 @@ const ALLOWED_TX_FILTER_KEYS = new Set([
     'userId',
 ]);
 
+// Allowed query keys for GET /summary. Same as transaction filters minus `type`
+// (summary aggregates both income and expense).
+const ALLOWED_SUMMARY_FILTER_KEYS = new Set([
+    'category',
+    'startDate',
+    'endDate',
+    'userId',
+]);
+
 // Allowed body keys for budget create.
 const ALLOWED_BUDGET_CREATE_KEYS = new Set([
     'userId',
@@ -197,6 +206,35 @@ const validateTransactionFilters = (req, _res, next) => {
     next();
 };
 
+// Validator for GET /summary query string.
+// Same shape as transaction filters minus `type` (summary aggregates both).
+// Empty-string values are treated as absent.
+const validateSummaryFilters = (req, _res, next) => {
+    const q = req.query || {};
+    const errors = [];
+
+    for (const key of Object.keys(q)) {
+        if (!ALLOWED_SUMMARY_FILTER_KEYS.has(key)) {
+            errors.push({
+                field: key,
+                message: `unknown filter. Allowed: ${[...ALLOWED_SUMMARY_FILTER_KEYS].join(', ')}`,
+            });
+        }
+    }
+
+    if (q.startDate !== undefined && q.startDate !== '' && !isValidISODate(q.startDate)) {
+        errors.push({ field: 'startDate', message: 'must be a valid ISO date' });
+    }
+    if (q.endDate !== undefined && q.endDate !== '' && !isValidISODate(q.endDate)) {
+        errors.push({ field: 'endDate', message: 'must be a valid ISO date' });
+    }
+
+    if (errors.length > 0) {
+        return next(new ValidationError('Invalid query parameters', errors));
+    }
+    next();
+};
+
 /* ------------------------- budget validators ------------------------- */
 
 // Strict validator for POST /budgets.
@@ -300,6 +338,7 @@ module.exports = {
     validateTransactionCreate,
     validateTransactionUpdate,
     validateTransactionFilters,
+    validateSummaryFilters,
     validateBudgetCreate,
     validateBudgetUpdate,
     validateBudgetFilters,
