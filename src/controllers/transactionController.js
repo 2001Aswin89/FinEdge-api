@@ -8,15 +8,7 @@ const createTransaction = async (req, res, next) => {
             transaction,
         });
     } catch (error) {
-
-        // NOTE: This inline error response will later be handled
-        // via centralized error handler middleware (M3)
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
-
-        // next(error);  pass to global error handler (Member 3 to handle later)
-
+        next(error);
     }
 };
 
@@ -36,9 +28,7 @@ const listTransactions = async (req, res, next) => {
             transactions,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
@@ -50,9 +40,7 @@ const getTransaction = async (req, res, next) => {
             transaction,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
@@ -67,9 +55,7 @@ const updateTransaction = async (req, res, next) => {
             transaction,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
@@ -81,9 +67,7 @@ const deleteTransaction = async (req, res, next) => {
             ...result,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
