@@ -312,3 +312,28 @@ Two of the four bonus options are now delivered:
 * **C.** Data Persistence: JSON file storage via `fs/promises` for users, transactions, and budgets
 
 ---
+
+## feature/advanced-node-concepts (Member 4)
+
+### Test Infrastructure
+
+* Jest 29 + Supertest 7 added as devDeps; `npm test` runs all suites
+* All test files placed in `tests/` and matched by Jest config in `package.json`
+* Per-suite tmp file fixtures via `os.tmpdir()` and `randomUUID()` so suites are parallel-safe and do not pollute production data files
+* `JWT_SECRET` is set to a test value at the top of relevant suites so M1's user service can issue tokens during tests
+
+### Code changes for testability
+
+* `src/app.js` exports the app and guards `app.listen()` with `if (require.main === module)` so Supertest can import the app without binding a port
+* `src/models/userModel.js` now reads optional `USERS_FILE` env var to allow tmp-fixture redirection (mirrors the same pattern in `transactionModel.js` and `budgetModel.js`)
+
+### Test coverage (84 tests across 6 suites)
+
+* `tests/utils.test.js`: analytics functions (totals, category breakdown, monthly trends, edge cases on empty input)
+* `tests/transactions.test.js`: 5 CRUD endpoints, validation, filtering, data integrity guarantees on PATCH, date strictness
+* `tests/budgets.test.js`: 5 CRUD endpoints, validation, filtering, uniqueness on `(userId, month)`, 409 conflict on PATCH-to-existing-month
+* `tests/middleware.test.js`: validator middleware, errorHandler middleware, notFoundHandler middleware, malformed JSON handling
+* `tests/summary.test.js`: response shape, aggregation correctness, byCategory sort order, filter validation
+* `tests/users.test.js`: `GET /health`, `POST /users` (registration, validation, email normalization, duplicate rejection)
+
+---
