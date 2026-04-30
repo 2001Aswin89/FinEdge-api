@@ -19,7 +19,8 @@ app.get('/health', (req, res) => {
     });
 });
 //User routes
-app.use(userRoutes);
+// Fix: mount under /users prefix (was previously at /).
+app.use('/users', userRoutes);
 //Transaction routes
 app.use('/transactions', transactionRoutes);
 //Budget routes
