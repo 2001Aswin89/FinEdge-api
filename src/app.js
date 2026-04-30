@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const userRoutes = require('./routes/userRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
 
 
 const app = express();
@@ -21,6 +22,8 @@ app.get('/health', (req, res) => {
 app.use(userRoutes);
 //Transaction routes
 app.use('/transactions', transactionRoutes);
+//Budget routes
+app.use('/budgets', budgetRoutes);
 
 const PORT = process.env.PORT || 5000;
 
