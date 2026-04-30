@@ -1,11 +1,17 @@
 const fs = require('fs/promises');
 const path = require('path');
 
-const filePath = path.join(__dirname, '../data/users.json');
+// USERS_FILE env override allows pointing to a tmp fixture during tests.
+const DEFAULT_PATH = path.join(__dirname, '../data/users.json');
+
+const getFilePath = () =>
+    process.env.USERS_FILE
+        ? path.resolve(process.cwd(), process.env.USERS_FILE)
+        : DEFAULT_PATH;
 
 const getAllUsers = async () => {
     try {
-        const data = await fs.readFile(filePath, 'utf-8');
+        const data = await fs.readFile(getFilePath(), 'utf-8');
         return JSON.parse(data || '[]');
     } catch (error) {
         // if file doesn't exist, return empty array
@@ -14,10 +20,10 @@ const getAllUsers = async () => {
 };
 
 const saveUsers = async (users) => {
-    await fs.writeFile(filePath, JSON.stringify(users, null, 2));
+    await fs.writeFile(getFilePath(), JSON.stringify(users, null, 2));
 };
 
 module.exports = {
     getAllUsers,
-    saveUsers
+    saveUsers,
 };
