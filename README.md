@@ -1,339 +1,302 @@
-# FinEdge API – User Module (Member 1)
-## Temprory README
-## 📌 Overview
+# FinEdge API
 
-This document describes the setup, implementation, and current structure of the **User Module**.
+A Node.js + Express REST API for tracking personal income, expenses, and monthly budgets. Built as a 4-member group project for the Airtribe AI-First Backend course.
 
-It is intended to help other team members understand:
+## Tech stack
 
-* What has been built
-* How it works
-* Where future changes can be made
+- **Node.js** >= 18
+- **Express 5** for HTTP routing
+- **CommonJS modules** (`require` / `module.exports`)
+- **`fs/promises`** for JSON file persistence (no database)
+- **jsonwebtoken** for mock session tokens
+- **dotenv** for environment configuration
+- **Jest 29** + **Supertest 7** for tests
+- **nodemon** for development hot-reload
 
----
+## Setup
 
-# 🧱 What Has Been Implemented
-
-## 1. Project Setup
-
-* Node.js project initialized
-* Express server configured
-* Environment variables setup (`.env`)
-* Development setup using nodemon
-
-## 2. Folder Structure (MVC)
-
-```
-src/
-  app.js
-  routes/
-  controllers/
-  services/
-  models/
-  middleware/
-  utils/
-  data/
+```bash
+git clone https://github.com/2001Aswin89/FinEdge-api.git
+cd FinEdge-api
+npm install
+cp .env.example .env       # edit values as needed (JWT_SECRET is required)
+npm run dev                # nodemon, hot reload
+# or
+npm start                  # plain node
 ```
 
-## 3. Base Server
+The server runs on `http://localhost:5000` by default. Health check: `GET /health`.
 
-* Express app initialized
-* JSON middleware enabled
-* Routes mounted
-* Health check route implemented
-
-### Health Endpoint
+## Folder structure
 
 ```
-GET /health
+FinEdge-api/
+├── package.json
+├── README.md
+├── FinEdge.postman_collection.json
+├── .env / .env.example
+├── src/
+│   ├── app.js                          # server entry, mounts everything
+│   ├── routes/
+│   │   ├── userRoutes.js
+│   │   ├── transactionRoutes.js
+│   │   ├── budgetRoutes.js
+│   │   └── summaryRoutes.js
+│   ├── controllers/
+│   │   ├── userController.js
+│   │   ├── transactionController.js
+│   │   ├── budgetController.js
+│   │   └── summaryController.js
+│   ├── services/
+│   │   ├── userService.js
+│   │   ├── transactionService.js
+│   │   └── budgetService.js
+│   ├── models/
+│   │   ├── userModel.js
+│   │   ├── transactionModel.js
+│   │   └── budgetModel.js
+│   ├── middleware/
+│   │   ├── logger.js                   # request/response logging
+│   │   ├── validator.js                # input validators
+│   │   └── errorHandler.js             # global error handler + 404 fallback
+│   ├── utils/
+│   │   ├── errors.js                   # custom error classes
+│   │   └── analytics.js                # totals, category breakdown, trends
+│   └── data/
+│       ├── users.json
+│       ├── transactions.json
+│       └── budgets.json
+└── tests/
+    ├── users.test.js
+    ├── transactions.test.js
+    ├── budgets.test.js
+    ├── middleware.test.js
+    ├── summary.test.js
+    └── utils.test.js
 ```
 
----
+## Routes
 
-# 👤 User Module
+| Method | Route | Description | Owner |
+|---|---|---|---|
+| GET | `/health` | Server health check | M1 |
+| POST | `/users` | Register a new user (returns user + JWT) | M1 |
+| POST | `/transactions` | Create an income or expense transaction | M2 |
+| GET | `/transactions` | List with optional filters (`type`, `category`, `startDate`, `endDate`, `userId`) | M2 |
+| GET | `/transactions/:id` | Fetch one transaction | M2 |
+| PATCH | `/transactions/:id` | Partial update | M2 |
+| DELETE | `/transactions/:id` | Delete | M2 |
+| POST | `/budgets` | Create a monthly budget (`userId`, `month`, `monthlyGoal`, `savingsTarget`) | M2 |
+| GET | `/budgets` | List with optional filters (`userId`, `month`) | M2 |
+| GET | `/budgets/:id` | Fetch one budget | M2 |
+| PATCH | `/budgets/:id` | Partial update | M2 |
+| DELETE | `/budgets/:id` | Delete | M2 |
+| GET | `/summary` | Income/expense totals, category breakdown, monthly trends (filters: `category`, `startDate`, `endDate`, `userId`) | M4 |
 
-## Endpoint
+## Response shape
 
-### Register User
+All endpoints return a flat JSON object. Successful responses include a human-readable `message` plus the data spread alongside it (no envelope).
 
-```
-POST /users
-```
+**Success, single resource:**
 
-### Request Body
-
-```
+```json
 {
-  "name": "Aswin",
-  "email": "aswin@email.com"
-}
-```
-
-### Response
-
-```
-{
-  "message": "User created successfully",
-  "user": {
-    "id": "<generated-id>",
-    "name": "Aswin",
-    "email": "aswin@email.com",
-    "createdAt": "<timestamp>"
-  },
-  "token": "<jwt-token>"
-}
-```
-
----
-
-# 🧠 Architecture Flow
-
-```
-Route → Controller → Service → Model → JSON File
-```
-
-### Responsibilities
-
-* **Route**: Defines endpoints
-* **Controller**: Handles request/response
-* **Service**: Business logic
-* **Model**: File operations
-
----
-
-# 💾 Data Storage
-
-Users are stored in:
-
-```
-src/data/users.json
-```
-
-Format:
-
-```
-[
-  {
-    "id": "...",
-    "name": "...",
-    "email": "...",
-    "createdAt": "..."
+  "message": "Transaction created successfully",
+  "transaction": {
+    "id": "552c033c-4973-4831-8def-56c24340987c",
+    "userId": null,
+    "type": "expense",
+    "category": "Groceries",
+    "amount": 250,
+    "date": "2026-04-30T00:00:00.000Z",
+    "description": "",
+    "createdAt": "2026-04-30T12:38:58.531Z",
+    "updatedAt": "2026-04-30T12:38:58.531Z"
   }
-]
-```
-
----
-
-# 🔐 JWT (Current Implementation)
-
-* Token is generated during user registration
-* Uses `JWT_SECRET` from `.env`
-* Token contains user id and email
-
-Note:
-
-* This is a basic implementation and can be extended or modified later
-
----
-
-# 🔗 Integration Notes
-
-## User Data
-
-* Each user has a unique `id`
-* This can be used by other modules (e.g., transactions)
-
-## API Response Format
-
-Responses follow this structure:
-
-```
-{
-  "message": "...",
-  ...data
 }
 ```
 
----
+**Success, list:**
+
+```json
+{
+  "message": "Transactions fetched successfully",
+  "count": 3,
+  "transactions": [ ... ]
+}
+```
 
-# 🧱 Areas for Future Work
+**Error, validation:**
 
-## Middleware (Member 3)
+```json
+{
+  "message": "Invalid transaction payload",
+  "errors": [
+    { "field": "type", "message": "must be one of: income, expense" },
+    { "field": "amount", "message": "must be a positive number" }
+  ]
+}
+```
 
-* Global error handling
-* Request logging
-* Input validation
-* Authentication (JWT verification)
+**Error, operational (NotFound, Conflict, malformed JSON):**
 
-## Transactions (Member 2)
+```json
+{
+  "message": "Transaction with id '...' not found"
+}
+```
 
-* Use user `id` to associate transactions
-* Maintain separate data storage (e.g., `transactions.json`)
+## Sample requests
 
-## Testing & Documentation (Member 4)
+### Register a user
 
-* Postman collection
-* API documentation
+```bash
+curl -X POST http://localhost:5000/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com"}'
+```
 
----
+### Create a transaction
 
-# ⚙️ Conventions
+```bash
+curl -X POST http://localhost:5000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"type":"expense","category":"Groceries","amount":1500,"date":"2026-04-15","description":"Weekly run"}'
+```
 
-* Follow MVC structure
-* Keep logic separated by layer
-* Use async/await for all async operations
-* Maintain consistent response structure
-* Store data in JSON format
+### Filter transactions by type and date range
 
----
+```bash
+curl "http://localhost:5000/transactions?type=expense&startDate=2026-01-01&endDate=2026-04-30"
+```
 
-# 🚀 Current Status
+### Update a transaction
 
-* Project setup complete
-* User registration implemented
-* Basic JWT support added
-* Ready for further development and integration
+```bash
+curl -X PATCH http://localhost:5000/transactions/<id> \
+  -H "Content-Type: application/json" \
+  -d '{"amount":1750,"category":"Food"}'
+```
 
----
+### Create a monthly budget
 
-# 🌿 Branch History
+```bash
+curl -X POST http://localhost:5000/budgets \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"user-1","month":"2026-04","monthlyGoal":50000,"savingsTarget":10000}'
+```
 
-> Note: This is a working log of changes made on the `feature/rest-api-development` branch.
-> The README will be fully reformatted as part of Member 4's documentation tasks.
+### List budgets for a user
 
-## feature/rest-api-development (Member 2)
+```bash
+curl "http://localhost:5000/budgets?userId=user-1"
+```
 
-### Transaction Module
+### Get summary
 
-Endpoints:
+```bash
+curl "http://localhost:5000/summary"
+curl "http://localhost:5000/summary?category=Groceries"
+curl "http://localhost:5000/summary?startDate=2026-03-01&endDate=2026-04-30"
+```
 
-* `POST /transactions` (create income/expense entry)
-* `GET /transactions` (list with optional filters: type, category, startDate, endDate, userId)
-* `GET /transactions/:id` (fetch single transaction)
-* `PATCH /transactions/:id` (partial update; system fields protected)
-* `DELETE /transactions/:id` (remove transaction)
+A full Postman collection covering every endpoint with example payloads is included at [FinEdge.postman_collection.json](FinEdge.postman_collection.json). Import it into Postman and set the `baseUrl` collection variable to `http://localhost:5000`.
 
-Data file: `src/data/transactions.json`
+## Running tests
 
-### Budget Module
+```bash
+npm test
+```
 
-Endpoints:
+Jest runs all 84 tests across 6 suites in under 10 seconds.
 
-* `POST /budgets` (create budget for a userId + month pair; uniqueness enforced)
-* `GET /budgets` (list with optional filters: userId, month)
-* `GET /budgets/:id` (fetch single budget)
-* `PATCH /budgets/:id` (partial update)
-* `DELETE /budgets/:id` (remove budget)
+| Suite | Tests | Covers |
+|---|---|---|
+| `tests/utils.test.js` | 5 | analytics functions and edge cases |
+| `tests/transactions.test.js` | 25 | 5 CRUD endpoints, validation, filtering, PATCH integrity, date strictness |
+| `tests/budgets.test.js` | 33 | 5 CRUD endpoints, validation, filtering, `(userId, month)` uniqueness |
+| `tests/middleware.test.js` | 6 | validator, errorHandler, notFoundHandler, malformed JSON |
+| `tests/summary.test.js` | 5 | response shape, aggregation correctness, byCategory sort, filter validation |
+| `tests/users.test.js` | 7 | `GET /health`, `POST /users` (registration, validation, duplicate handling) |
 
-Data file: `src/data/budgets.json`
+Each suite uses unique tmp file fixtures via `os.tmpdir()` and `randomUUID()`, so suites are parallel-safe and never touch the production data files in `src/data/`.
 
-### Custom Error Classes (`src/utils/errors.js`)
+## Architecture notes
 
-* `AppError` (base class with HTTP statusCode)
-* `NotFoundError` (404 for missing resources)
-* `ValidationError` (400 with field-level details)
-* `ConflictError` (409 for uniqueness violations)
+- **MVC + service layer.** Routes do routing only. Controllers translate HTTP. Services hold business logic. Models do file I/O. The layering keeps persistence isolated; swapping the JSON files for a real database only touches the model layer.
+- **Async/await everywhere.** Every file I/O call is awaited; no callbacks.
+- **CommonJS modules.** Chosen to match Member 1's existing convention.
+- **Centralized error handling.** Domain errors (`AppError`, `NotFoundError`, `ValidationError`, `ConflictError`) thrown by services bubble through `next(err)` and are formatted by the global error handler middleware. The user controller retains its inline catch pattern from Member 1; transaction, budget, and summary controllers all delegate to the global handler.
+- **Lazy env-var reads.** Models read `process.env.USERS_FILE`, `TRANSACTIONS_FILE`, and `BUDGETS_FILE` inside `getFilePath()`, not at module top-level, so tests can swap fixture paths after the module loads.
+- **Request logging.** A simple stdout logger records every request on entry and the final status + duration on exit, captured via `res.on('finish')` so the status reflects the actual response.
 
-### Configuration
+## Core entities
 
-* `.env.example` added with required environment variables (`PORT`, `JWT_SECRET`, `TRANSACTIONS_FILE`, `BUDGETS_FILE`)
+### User (`src/models/userModel.js`)
 
-### Pending Work (handled in `feature/middleware`)
+Schema: `{ id, name, email, createdAt }`
 
-* Validation middleware on body and query parameters
-* Global error-handling middleware
-* Request-logging middleware
+- `id`: timestamp-based string assigned by the service layer
+- `email`: normalized to lowercase before save; must be unique
+- A JWT is issued on registration, signed with `JWT_SECRET`
 
----
+### Transaction (`src/models/transactionModel.js`)
 
-## feature/middleware (Member 3)
+Schema: `{ id, userId, type, category, amount, date, description, createdAt, updatedAt }`
 
-### Request Logger (`src/middleware/logger.js`)
+- `id`: UUID v4 via `crypto.randomUUID()`
+- `userId`: foreign key to users (nullable in this build; the JWT layer is mocked)
+- `type`: `income` or `expense`
+- `amount`: positive number
+- `date`: ISO date string (YYYY-MM-DD or full ISO 8601 with timezone)
 
-* Logs every incoming request on entry (timestamp, method, path)
-* Logs status code and duration on response finish
-* Mounted before body parsers so failed parses are still logged
+### Budget (`src/models/budgetModel.js`)
 
-### Global Error Handler (`src/middleware/errorHandler.js`)
+Schema: `{ id, userId, month, monthlyGoal, savingsTarget, createdAt, updatedAt }`
 
-* Operational errors (`AppError` subclasses) are surfaced with their HTTP `statusCode` and message
-* `ValidationError` responses include an `errors` array with field-level details
-* Malformed JSON returns `400` with `Request body contains invalid JSON`
-* Unknown / programmer errors are logged server-side and return a generic `500`
+- `month`: `YYYY-MM`
+- `monthlyGoal`: positive number (target spend ceiling for the month)
+- `savingsTarget`: non-negative number
+- `(userId, month)` is unique. Enforced on `POST /budgets` and on `PATCH /budgets/:id` when `month` is changing.
 
-### 404 Fallback (`notFoundHandler`)
+## Data integrity guarantees
 
-* Catches unmatched routes and returns `404` with `Cannot {METHOD} {URL}`
-* Mounted after all routes, before the global error handler
+- `id`, `userId`, `createdAt`, `updatedAt` on `Transaction` and `Budget` are system-managed and **cannot** be mutated through `PATCH`. Attempts return `400` with the offending field listed in `errors[]`.
+- `PATCH` rejects unknown body keys outright (no silent persistence of `{ "evil": "data" }`).
+- `POST /transactions` and `POST /budgets` reject unknown body keys for the same reason.
+- Dates must match `YYYY-MM-DD` or full ISO 8601. `"2026"`, `"April"`, and other shorthand are rejected by `validateTransactionCreate`.
+- `?type=banana` and `?startDate=banana` on GET endpoints return `400` with structured `errors[]`, not a silent empty array.
+- `(userId, month)` uniqueness on budgets is enforced on both create and on PATCH-to-different-month.
 
-### Input Validators (`src/middleware/validator.js`)
+## Bonus features delivered (Section 5 of brief)
 
-Transaction validators:
-* `validateTransactionCreate` (POST body)
-* `validateTransactionUpdate` (PATCH body, rejects empty body and unknown fields)
-* `validateTransactionFilters` (GET query)
+Two of the four bonus options are delivered:
 
-Budget validators:
-* `validateBudgetCreate` (POST body)
-* `validateBudgetUpdate` (PATCH body)
-* `validateBudgetFilters` (GET query)
+- **A.** Analytics & Reporting: `GET /summary` with totals (income, expense, balance, transaction count), category breakdown (sorted highest first), and monthly trends per `YYYY-MM`. Filter support on `/transactions` (`type`, `category`, `startDate`, `endDate`, `userId`) and `/summary` (same set minus `type`, since summary aggregates both).
+- **C.** Data Persistence: JSON file storage via `fs/promises` for users, transactions, and budgets. File paths are configurable via env vars.
 
-Failed validation throws `ValidationError`, which the global error handler surfaces as `400` with field-level details.
+The Section 4 bonus (mock JWT session) is also implemented: a JWT is returned on `POST /users` registration.
 
-### Controller Refactor
+## Environment variables
 
-* Inline error handling in transaction and budget controllers replaced with `next(err)` so all error responses are formatted by the global handler
-* M1's `userController` retains its inline pattern; can be migrated separately
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `5000` | HTTP listen port |
+| `JWT_SECRET` | (required) | Secret used to sign JWTs on registration |
+| `TRANSACTIONS_FILE` | `./src/data/transactions.json` | Override the transactions data file path (used by tests) |
+| `BUDGETS_FILE` | `./src/data/budgets.json` | Override the budgets data file path (used by tests) |
+| `USERS_FILE` | `./src/data/users.json` | Override the users data file path (used by tests) |
+| `NODE_ENV` | unset | Set to `development` to surface raw error messages in 500 responses |
 
----
+See `.env.example` for the canonical list.
 
-## feature/bonus-features (Member 4)
+## Member responsibilities
 
-### Analytics Utility (`src/utils/analytics.js`)
+- **M1**: User APIs and project setup. `app.js` scaffolding, user route/controller/service/model, JWT helper, `users.json`, `GET /health` endpoint.
+- **M2**: Transaction and Budget APIs. Transaction route/controller/service/model, Budget route/controller/service/model, custom error classes (`AppError`, `NotFoundError`, `ValidationError`, `ConflictError`).
+- **M3**: Async and Middleware. Request logger, input validators, global error handler with 404 fallback. Refactored transaction and budget controllers from inline catch to `next(err)`.
+- **M4**: Analytics, tests, and documentation. Analytics utility, summary controller and route, full Jest test suite, README, Postman collection.
 
-Pure functions over a transactions array, kept service-agnostic so they can be tested in isolation.
+## License
 
-* `calculateTotals` (income, expense, balance, transactionCount; values rounded to 2 decimal places)
-* `categoryBreakdown` (sorted highest first; defaults to expenses)
-* `monthlyTrends` (income, expense, balance per `YYYY-MM`; chronologically sorted)
-* `buildSummary` (one-shot aggregator used by the `/summary` endpoint)
-
-### Summary Endpoint
-
-* `GET /summary` (income/expense aggregation; optional filters: `category`, `startDate`, `endDate`, `userId`)
-* Response shape: `{ message, totals, byCategory, monthlyTrends }`
-* Filter validation: unknown filter keys and malformed dates rejected with 400 via `validateSummaryFilters` in `src/middleware/validator.js`
-
-### Bonus Coverage (Section 5 of brief)
-
-Two of the four bonus options are now delivered:
-
-* **A.** Analytics & Reporting: `/summary` with totals, category breakdown, monthly trends; filter support on `/transactions` and `/summary`
-* **C.** Data Persistence: JSON file storage via `fs/promises` for users, transactions, and budgets
-
----
-
-## feature/advanced-node-concepts (Member 4)
-
-### Test Infrastructure
-
-* Jest 29 + Supertest 7 added as devDeps; `npm test` runs all suites
-* All test files placed in `tests/` and matched by Jest config in `package.json`
-* Per-suite tmp file fixtures via `os.tmpdir()` and `randomUUID()` so suites are parallel-safe and do not pollute production data files
-* `JWT_SECRET` is set to a test value at the top of relevant suites so M1's user service can issue tokens during tests
-
-### Code changes for testability
-
-* `src/app.js` exports the app and guards `app.listen()` with `if (require.main === module)` so Supertest can import the app without binding a port
-* `src/models/userModel.js` now reads optional `USERS_FILE` env var to allow tmp-fixture redirection (mirrors the same pattern in `transactionModel.js` and `budgetModel.js`)
-
-### Test coverage (84 tests across 6 suites)
-
-* `tests/utils.test.js`: analytics functions (totals, category breakdown, monthly trends, edge cases on empty input)
-* `tests/transactions.test.js`: 5 CRUD endpoints, validation, filtering, data integrity guarantees on PATCH, date strictness
-* `tests/budgets.test.js`: 5 CRUD endpoints, validation, filtering, uniqueness on `(userId, month)`, 409 conflict on PATCH-to-existing-month
-* `tests/middleware.test.js`: validator middleware, errorHandler middleware, notFoundHandler middleware, malformed JSON handling
-* `tests/summary.test.js`: response shape, aggregation correctness, byCategory sort order, filter validation
-* `tests/users.test.js`: `GET /health`, `POST /users` (registration, validation, email normalization, duplicate rejection)
-
----
+Coursework. Not licensed for redistribution.
