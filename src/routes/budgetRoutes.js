@@ -9,17 +9,20 @@ const {
     deleteBudget,
 } = require('../controllers/budgetController');
 
-// NOTE: Validator middleware (Member 3) will be wired onto the body / query
-// routes once middleware/validator.js lands in the next branch.
+const {
+    validateBudgetCreate,
+    validateBudgetUpdate,
+    validateBudgetFilters,
+} = require('../middleware/validator');
 
 // POST /budgets
-router.post('/', createBudget);
+router.post('/', validateBudgetCreate, createBudget);
 // GET /budgets
-router.get('/', listBudgets);
+router.get('/', validateBudgetFilters, listBudgets);
 // GET /budgets/:id
 router.get('/:id', getBudget);
 // PATCH /budgets/:id
-router.patch('/:id', updateBudget);
+router.patch('/:id', validateBudgetUpdate, updateBudget);
 // DELETE /budgets/:id
 router.delete('/:id', deleteBudget);
 

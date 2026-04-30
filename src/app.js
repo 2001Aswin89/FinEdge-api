@@ -1,6 +1,8 @@
 require('dotenv').config();
 
 const express = require('express');
+const logger = require('./middleware/logger');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const userRoutes = require('./routes/userRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
@@ -9,6 +11,7 @@ const budgetRoutes = require('./routes/budgetRoutes');
 const app = express();
 
 // Middleware
+app.use(logger);
 app.use(express.json());
 
 // Routes
@@ -25,6 +28,11 @@ app.use('/users', userRoutes);
 app.use('/transactions', transactionRoutes);
 //Budget routes
 app.use('/budgets', budgetRoutes);
+
+// 404 fallback for unmatched routes
+app.use(notFoundHandler);
+// Global error handler (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
