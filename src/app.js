@@ -6,6 +6,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const userRoutes = require('./routes/userRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
+const summaryRoutes = require('./routes/summaryRoutes');
 
 
 const app = express();
@@ -28,6 +29,8 @@ app.use('/users', userRoutes);
 app.use('/transactions', transactionRoutes);
 //Budget routes
 app.use('/budgets', budgetRoutes);
+//Summary routes
+app.use('/summary', summaryRoutes);
 
 // 404 fallback for unmatched routes
 app.use(notFoundHandler);

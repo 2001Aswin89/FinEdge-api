@@ -286,3 +286,29 @@ Failed validation throws `ValidationError`, which the global error handler surfa
 * M1's `userController` retains its inline pattern; can be migrated separately
 
 ---
+
+## feature/bonus-features (Member 4)
+
+### Analytics Utility (`src/utils/analytics.js`)
+
+Pure functions over a transactions array, kept service-agnostic so they can be tested in isolation.
+
+* `calculateTotals` (income, expense, balance, transactionCount; values rounded to 2 decimal places)
+* `categoryBreakdown` (sorted highest first; defaults to expenses)
+* `monthlyTrends` (income, expense, balance per `YYYY-MM`; chronologically sorted)
+* `buildSummary` (one-shot aggregator used by the `/summary` endpoint)
+
+### Summary Endpoint
+
+* `GET /summary` (income/expense aggregation; optional filters: `category`, `startDate`, `endDate`, `userId`)
+* Response shape: `{ message, totals, byCategory, monthlyTrends }`
+* Filter validation: unknown filter keys and malformed dates rejected with 400 via `validateSummaryFilters` in `src/middleware/validator.js`
+
+### Bonus Coverage (Section 5 of brief)
+
+Two of the four bonus options are now delivered:
+
+* **A.** Analytics & Reporting: `/summary` with totals, category breakdown, monthly trends; filter support on `/transactions` and `/summary`
+* **C.** Data Persistence: JSON file storage via `fs/promises` for users, transactions, and budgets
+
+---
