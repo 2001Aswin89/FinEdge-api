@@ -245,3 +245,44 @@ Data file: `src/data/budgets.json`
 * Request-logging middleware
 
 ---
+
+## feature/middleware (Member 3)
+
+### Request Logger (`src/middleware/logger.js`)
+
+* Logs every incoming request on entry (timestamp, method, path)
+* Logs status code and duration on response finish
+* Mounted before body parsers so failed parses are still logged
+
+### Global Error Handler (`src/middleware/errorHandler.js`)
+
+* Operational errors (`AppError` subclasses) are surfaced with their HTTP `statusCode` and message
+* `ValidationError` responses include an `errors` array with field-level details
+* Malformed JSON returns `400` with `Request body contains invalid JSON`
+* Unknown / programmer errors are logged server-side and return a generic `500`
+
+### 404 Fallback (`notFoundHandler`)
+
+* Catches unmatched routes and returns `404` with `Cannot {METHOD} {URL}`
+* Mounted after all routes, before the global error handler
+
+### Input Validators (`src/middleware/validator.js`)
+
+Transaction validators:
+* `validateTransactionCreate` (POST body)
+* `validateTransactionUpdate` (PATCH body, rejects empty body and unknown fields)
+* `validateTransactionFilters` (GET query)
+
+Budget validators:
+* `validateBudgetCreate` (POST body)
+* `validateBudgetUpdate` (PATCH body)
+* `validateBudgetFilters` (GET query)
+
+Failed validation throws `ValidationError`, which the global error handler surfaces as `400` with field-level details.
+
+### Controller Refactor
+
+* Inline error handling in transaction and budget controllers replaced with `next(err)` so all error responses are formatted by the global handler
+* M1's `userController` retains its inline pattern; can be migrated separately
+
+---
