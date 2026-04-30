@@ -8,15 +8,7 @@ const createBudget = async (req, res, next) => {
             budget,
         });
     } catch (error) {
-
-        // NOTE: This inline error response will later be handled
-        // via centralized error handler middleware (M3)
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
-
-        // next(error);  pass to global error handler (Member 3 to handle later)
-
+        next(error);
     }
 };
 
@@ -30,9 +22,7 @@ const listBudgets = async (req, res, next) => {
             budgets,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
@@ -44,9 +34,7 @@ const getBudget = async (req, res, next) => {
             budget,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
@@ -61,9 +49,7 @@ const updateBudget = async (req, res, next) => {
             budget,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
@@ -75,9 +61,7 @@ const deleteBudget = async (req, res, next) => {
             ...result,
         });
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            message: error.message || 'Internal Server Error',
-        });
+        next(error);
     }
 };
 
